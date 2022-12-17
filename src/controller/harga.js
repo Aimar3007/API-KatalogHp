@@ -11,10 +11,14 @@ controller.getAll = async (req, res) => {
     const brand = req.body.brand
     const toko = req.body.toko
 
-    console.log('ini searched', searched)
-    const data = await model.harga.findAll({
+    const limit = parseInt(req.body.record);
+    const page = parseInt(req.body.page);
+    const start = (page - 1) * limit;
+    const end = page * limit;
+
+    const data = await model.harga.findAndCountAll({
       where: {
-        ...(hargaMin && hargaMax) && {
+        ...(hargaMin && hargaMaxc) && {
           harga: {
             [Op.between]: [hargaMin, hargaMax]
           }
@@ -53,12 +57,32 @@ controller.getAll = async (req, res) => {
             }
           },
         }
-      ]
+      ],
+      offset: start,
+      limit: limit,
     })
+
+    const countFiltered = data.count.length;
+    console.log(data.count.length);
+    let pagination = {};
+    pagination.totalPage = Math.ceil(countFiltered / limit);
+    if (end < countFiltered) {
+      pagination.next = {
+        page: page + 1,
+        limit,
+      };
+    }
+    if (start > 0) {
+      pagination.prev = {
+        page: page - 1,
+        limit,
+      };
+    }
 
     res.status(200).json({
       message: "Data Handphones",
-      data,
+      pagination,
+      data: data.rows,
     });
   } catch (error) {
     res.status(404).json({
