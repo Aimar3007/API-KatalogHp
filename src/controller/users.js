@@ -3,7 +3,7 @@ const controller = {};
 
 controller.getAll = async (req, res) => {
   try {
-    const data = await model.user.findAll()
+    const data = await model.brand.findAll()
     res.status(200).json({
       message: "Data Users",
       data: data,
